@@ -1,17 +1,16 @@
 from flask import Flask, request, jsonify
+from twilio.rest import Client
 import os
-from openpyxl import Workbook, load_workbook
 
 app = Flask(__name__)
 
-EXCEL_FILE = "submissions.xlsx"
+# Twilio credentials from environment variables
+ACCOUNT_SID = os.environ.get("TWILIO_SID")
+AUTH_TOKEN = os.environ.get("TWILIO_AUTH")
+WHATSAPP_FROM = os.environ.get("WHATSAPP_FROM")  # e.g., whatsapp:+14155238886
+WHATSAPP_TO = os.environ.get("WHATSAPP_TO")      # e.g., whatsapp:+91XXXXXXXXXX
 
-# Create file if it doesn't exist
-if not os.path.exists(EXCEL_FILE):
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["Name", "Email", "Message"])  # Column headers
-    wb.save(EXCEL_FILE)
+client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 @app.route("/submit", methods=["POST"])
 def submit_form():
@@ -20,13 +19,22 @@ def submit_form():
     if not data or not data.get("name") or not data.get("email"):
         return jsonify({"error": "Name and Email are required"}), 400
 
-    wb = load_workbook(EXCEL_FILE)
-    ws = wb.active
-    ws.append([data["name"], data["email"], data.get("message", "")])
-    wb.save(EXCEL_FILE)
+    # Format message
+    message_body = f"""
+📩 New Form Submission
+Name: {data['name']}
+Email: {data['email']}
+Message: {data.get('message', '')}
+"""
 
-    return jsonify({"success": True, "message": "Form submitted!"}), 200
+    # Send via WhatsApp
+    client.messages.create(
+        body=message_body,
+        from_=WHATSAPP_FROM,
+        to=WHATSAPP_TO
+    )
 
+    return jsonify({"success": True, "message": "Form submitted and sent to WhatsApp!"}), 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
