@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from twilio.rest import Client
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Allow all origins — or restrict to your domain
 
 # Twilio credentials from environment variables
 ACCOUNT_SID = os.environ.get("TWILIO_SID")
