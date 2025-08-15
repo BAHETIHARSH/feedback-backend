@@ -4,8 +4,13 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Allow all origins — or restrict to your domain
+ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN")
 
+CORS(app, resources={
+    r"/submit": {
+        "origins": ALLOWED_ORIGIN
+    }
+})
 # Twilio credentials from environment variables
 ACCOUNT_SID = os.environ.get("TWILIO_SID")
 AUTH_TOKEN = os.environ.get("TWILIO_AUTH")
