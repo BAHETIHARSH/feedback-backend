@@ -2,3 +2,4 @@ flask
 openpyxl
 gunicorn
 twilio
+flask-cors
